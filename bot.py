@@ -1,294 +1,279 @@
-import telebot
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+import os
 import random
-import string
-import re
+import telebot
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-# ضع التوكن الخاص بك هنا
-TOKEN = "8633043777:AAHPtW9zkm_vfiCuN917UzcBNt7tFdJoWo8"
+# ============= جلب التوكن من متغيرات البيئة =============
+TOKEN = os.environ.get('BOT_TOKEN')
+if not TOKEN:
+    print("❌ خطأ: لم يتم تعيين BOT_TOKEN في متغيرات البيئة")
+    exit(1)
+
 bot = telebot.TeleBot(TOKEN)
 
-# ==================== قواميس الزخرفة ====================
+# ============= زخارف الاسم =============
 
 # زخارف عربية
-arabic_decorations = [
-    lambda x: f"『 {x} 』", lambda x: f"「 {x} 」", lambda x: f"【 {x} 】",
-    lambda x: f"★ {x} ★", lambda x: f"✨{x}✨", lambda x: f"♡ {x} ♡",
-    lambda x: f"❥ {x}", lambda x: f"༺ {x} ༻", lambda x: f"✧ {x} ✧",
-    lambda x: f"☾ {x} ☽", lambda x: f"『{x}』💫", lambda x: f"《 {x} 》",
-    lambda x: f"〈 {x} 〉", lambda x: f"⎯ {x} ⎯", lambda x: f"╰┈➤ {x}",
-    lambda x: f"⛧ {x} ⛧", lambda x: f"† {x} †", lambda x: f"⚜️ {x} ⚜️",
-    lambda x: f"「{x}」🔥", lambda x: f"✿ {x} ✿"
+arabic_styles = [
+    {"func": lambda x: f"『{x}』", "emoji": "📦"},
+    {"func": lambda x: f"「{x}」", "emoji": "🎋"},
+    {"func": lambda x: f"【{x}】", "emoji": "🔲"},
+    {"func": lambda x: f"★{x}★", "emoji": "⭐"},
+    {"func": lambda x: f"☆{x}☆", "emoji": "✨"},
+    {"func": lambda x: f"♡{x}♡", "emoji": "❤️"},
+    {"func": lambda x: f"❥{x}", "emoji": "💕"},
+    {"func": lambda x: f"✿{x}✿", "emoji": "🌸"},
+    {"func": lambda x: f"༺{x}༻", "emoji": "👑"},
+    {"func": lambda x: f"✧{x}✧", "emoji": "💎"},
+    {"func": lambda x: f"☾{x}☽", "emoji": "🌙"},
+    {"func": lambda x: f"⚡{x}⚡", "emoji": "⚡"},
+    {"func": lambda x: f"🔥{x}🔥", "emoji": "🔥"},
+    {"func": lambda x: f"꧁{x}꧂", "emoji": "🎨"},
+    {"func": lambda x: f"⎯{x}⎯", "emoji": "📏"},
+    {"func": lambda x: f"╰┈➤{x}", "emoji": "➡️"},
+    {"func": lambda x: f"⛧{x}⛧", "emoji": "⛧"},
+    {"func": lambda x: f"†{x}†", "emoji": "✝️"},
+    {"func": lambda x: f"⚜️{x}⚜️", "emoji": "⚜️"},
+    {"func": lambda x: f"𖤐{x}𖤐", "emoji": "🦋"},
+    {"func": lambda x: f"『{x}』💫", "emoji": "💫"},
+    {"func": lambda x: f"《{x}》", "emoji": "📖"},
+    {"func": lambda x: f"〈{x}〉", "emoji": "🔹"},
+    {"func": lambda x: f"「{x}」🔥", "emoji": "🔥"},
+    {"func": lambda x: f"「{x}」✨", "emoji": "✨"},
+    {"func": lambda x: f"『{x}』🌟", "emoji": "🌟"},
+    {"func": lambda x: f"『{x}』💎", "emoji": "💎"},
 ]
 
-# زخارف إنجليزية
-english_decorations = [
-    lambda x: f"『 {x} 』", lambda x: f"「 {x} 」", lambda x: f"【 {x} 】",
-    lambda x: f"★ {x} ★", lambda x: f"✨{x}✨", lambda x: f"♡ {x} ♡",
-    lambda x: f"❥ {x}", lambda x: f"༺ {x} ༻", lambda x: f"✧ {x} ✧",
-    lambda x: f"☾ {x} ☽", lambda x: f"𝕋𝕙𝕖 {x}", lambda x: f"🅃🄷🄴 {x.upper()}",
-    lambda x: f"𝓣𝓱𝓮 {x}", lambda x: f"𝕿𝖍𝖊 {x}", lambda x: f"ᵗʰᵉ {x}",
-    lambda x: f"🇹 🇭 🇪  {x}", lambda x: f"Ⓣⓗⓔ {x}", lambda x: f"🅣🅗🅔 {x}"
+# زخارف إنجليزية بخطوط مختلفة
+def to_bold(text):
+    bold_map = {'A': '𝐀', 'B': '𝐁', 'C': '𝐂', 'D': '𝐃', 'E': '𝐄', 'F': '𝐅', 'G': '𝐆',
+                'H': '𝐇', 'I': '𝐈', 'J': '𝐉', 'K': '𝐊', 'L': '𝐋', 'M': '𝐌', 'N': '𝐍',
+                'O': '𝐎', 'P': '𝐏', 'Q': '𝐐', 'R': '𝐑', 'S': '𝐒', 'T': '𝐓', 'U': '𝐔',
+                'V': '𝐕', 'W': '𝐖', 'X': '𝐗', 'Y': '𝐘', 'Z': '𝐙'}
+    result = ""
+    for char in text:
+        if char.upper() in bold_map:
+            result += bold_map[char.upper()] if char.isupper() else bold_map[char.upper()].lower()
+        else:
+            result += char
+    return result
+
+def to_script(text):
+    script_map = {'A': '𝓐', 'B': '𝓑', 'C': '𝓒', 'D': '𝓓', 'E': '𝓔', 'F': '𝓕', 'G': '𝓖',
+                  'H': '𝓗', 'I': '𝓘', 'J': '𝓙', 'K': '𝓚', 'L': '𝓛', 'M': '𝓜', 'N': '𝓝',
+                  'O': '𝓞', 'P': '𝓟', 'Q': '𝓠', 'R': '𝓡', 'S': '𝓢', 'T': '𝓣', 'U': '𝓤',
+                  'V': '𝓥', 'W': '𝓦', 'X': '𝓧', 'Y': '𝓨', 'Z': '𝓩'}
+    result = ""
+    for char in text:
+        if char.upper() in script_map:
+            result += script_map[char.upper()] if char.isupper() else script_map[char.upper()].lower()
+        else:
+            result += char
+    return result
+
+def to_double(text):
+    double_map = {'A': '𝔸', 'B': '𝔹', 'C': 'ℂ', 'D': '𝔻', 'E': '𝔼', 'F': '𝔽', 'G': '𝔾',
+                  'H': 'ℍ', 'I': '𝕀', 'J': '𝕁', 'K': '𝕂', 'L': '𝕃', 'M': '𝕄', 'N': 'ℕ',
+                  'O': '𝕆', 'P': 'ℙ', 'Q': 'ℚ', 'R': 'ℝ', 'S': '𝕊', 'T': '𝕋', 'U': '𝕌',
+                  'V': '𝕍', 'W': '𝕎', 'X': '𝕏', 'Y': '𝕐', 'Z': 'ℤ'}
+    result = ""
+    for char in text:
+        if char.upper() in double_map:
+            result += double_map[char.upper()] if char.isupper() else double_map[char.upper()].lower()
+        else:
+            result += char
+    return result
+
+def to_fraktur(text):
+    fraktur_map = {'A': '𝔄', 'B': '𝔅', 'C': 'ℭ', 'D': '𝔇', 'E': '𝔈', 'F': '𝔉', 'G': '𝔊',
+                   'H': 'ℌ', 'I': 'ℑ', 'J': '𝔍', 'K': '𝔎', 'L': '𝔏', 'M': '𝔐', 'N': '𝔑',
+                   'O': '𝔒', 'P': '𝔓', 'Q': '𝔔', 'R': 'ℜ', 'S': '𝔖', 'T': '𝔗', 'U': '𝔘',
+                   'V': '𝔙', 'W': '𝔚', 'X': '𝔛', 'Y': '𝔜', 'Z': 'ℨ'}
+    result = ""
+    for char in text:
+        if char.upper() in fraktur_map:
+            result += fraktur_map[char.upper()] if char.isupper() else fraktur_map[char.upper()].lower()
+        else:
+            result += char
+    return result
+
+def to_mono(text):
+    mono_map = {'A': '𝙰', 'B': '𝙱', 'C': '𝙲', 'D': '𝙳', 'E': '𝙴', 'F': '𝙵', 'G': '𝙶',
+                'H': '𝙷', 'I': '𝙸', 'J': '𝙹', 'K': '𝙺', 'L': '𝙻', 'M': '𝙼', 'N': '𝙽',
+                'O': '𝙾', 'P': '𝙿', 'Q': '𝚀', 'R': '𝚁', 'S': '𝚂', 'T': '𝚃', 'U': '𝚄',
+                'V': '𝚅', 'W': '𝚆', 'X': '𝚇', 'Y': '𝚈', 'Z': '𝚉'}
+    result = ""
+    for char in text:
+        if char.upper() in mono_map:
+            result += mono_map[char.upper()] if char.isupper() else mono_map[char.upper()].lower()
+        else:
+            result += char
+    return result
+
+def to_bubble(text):
+    result = ""
+    for char in text.upper():
+        if 'A' <= char <= 'Z':
+            result += chr(127280 + ord(char) - ord('A'))
+        else:
+            result += char
+    return result
+
+def to_square(text):
+    result = ""
+    for char in text.upper():
+        if 'A' <= char <= 'Z':
+            result += chr(127312 + ord(char) - ord('A'))
+        else:
+            result += char
+    return result
+
+english_styles = [
+    {"func": lambda x: f"『{x}』", "emoji": "📦"},
+    {"func": lambda x: f"「{x}」", "emoji": "🎋"},
+    {"func": lambda x: f"★{x}★", "emoji": "⭐"},
+    {"func": lambda x: f"♡{x}♡", "emoji": "❤️"},
+    {"func": lambda x: f"✦{x}✦", "emoji": "✨"},
+    {"func": to_bold, "emoji": "💪"},
+    {"func": to_script, "emoji": "✍️"},
+    {"func": to_double, "emoji": "2️⃣"},
+    {"func": to_fraktur, "emoji": "🏰"},
+    {"func": to_mono, "emoji": "⌨️"},
+    {"func": to_bubble, "emoji": "💭"},
+    {"func": to_square, "emoji": "🔲"},
+    {"func": lambda x: f"༺{x}༻", "emoji": "👑"},
+    {"func": lambda x: f"⚡{x}⚡", "emoji": "⚡"},
+    {"func": lambda x: f"🔥{x}🔥", "emoji": "🔥"},
+    {"func": lambda x: f"꧁{x}꧂", "emoji": "🎨"},
 ]
 
-# تأثيرات إضافية
-def add_underline(text): return f"<u>{text}</u>"
-def add_overline(text): return f"<u>{text}</u>"  # Telegram doesn't support overline directly
-def add_strikethrough(text): return f"<s>{text}</s>"
-def reverse_text(text): return text[::-1]
-def add_spaces(text): return " ".join(text)
-def add_box(text): return f"┌───┐\n│{text}│\n└───┘"
-
-# ==================== بايوهات جاهزة ====================
-
-whatsapp_bios = [
-    "✨ الحياة بسيطة، لا تعقدها ✨",
-    "💫 توكل على الله وتحرك 💫",
-    "❤️ عيش حياتك بلا أسف ❤️",
-    "🌙 لست متاحًا للجميع 🌙",
-    "🔥 لا تقارنني بأحد 🔥",
-    "🎯 راضي بقسمتي 🎯",
-    "🕊️ سلام داخلي 🕊️",
-    "⭐ تحت الإشراف الإلهي ⭐"
-]
-
-instagram_bios = [
-    "📸 | Just vibes ✨",
-    "💫 | Living my best life",
-    "❤️ | Love & Peace",
-    "🎯 | Dream chaser",
-    "🌙 | Night owl",
-    "🔥 | Hustle mode",
-    "🕊️ | Free soul",
-    "⭐ | Star stuff"
-]
-
-messenger_bios = [
-    "💬 | متاح للكلام أحيانًا",
-    "🎮 | Gaming mode on",
-    "📱 | Offline life online",
-    "💭 | أفكار عشوائية",
-    "🎧 | Music is life",
-    "📚 | قراءة وكتابة",
-    "🌍 | عابر سبيل",
-    "⚡ | سريع الاستجابة"
-]
-
-# ==================== دوال مساعدة ====================
-
-def get_random_decorations(text, lang, count=10):
-    decorations = arabic_decorations if lang == 'arabic' else english_decorations
-    selected = random.sample(decorations, min(count, len(decorations)))
-    results = []
-    emojis = ['✨', '🌟', '💫', '⭐', '🔥', '❤️', '💙', '💜', '🖤', '💛']
-    for i, dec in enumerate(selected):
-        results.append(f"{emojis[i % len(emojis)]} {dec(text)}")
-    return results
-
-def get_translations(name):
-    # محاكاة للترجمة (لأغراض العرض)
-    korean_map = {
-        'ا': '아', 'ب': '바', 'ت': '타', 'ث': '사', 'ج': '자', 'ح': '하',
-        'خ': '카', 'د': '다', 'ذ': '자', 'ر': '라', 'ز': '자', 'س': '사',
-        'ش': '샤', 'ص': '사', 'ض': '다', 'ط': '타', 'ظ': '자', 'ع': '아',
-        'غ': '가', 'ف': '파', 'ق': '카', 'ك': '카', 'ل': '라', 'م': '마',
-        'ن': '나', 'ه': '하', 'و': '와', 'ي': '야'
-    }
-    
-    chinese_map = {
-        'ا': '阿', 'ب': '巴', 'ت': '塔', 'ث': '萨', 'ج': '贾', 'ح': '哈',
-        'خ': '哈', 'د': '达', 'ذ': '扎', 'ر': '拉', 'ز': '扎', 'س': '萨',
-        'ش': '沙', 'ص': '萨', 'ض': '达', 'ط': '塔', 'ظ': '扎', 'ع': '阿',
-        'غ': '加', 'ف': '法', 'ق': '卡', 'ك': '卡', 'ل': '拉', 'م': '马',
-        'ن': '纳', 'ه': '哈', 'و': '瓦', 'ي': '亚'
-    }
-    
-    korean_name = ''.join([korean_map.get(ch, ch) for ch in name])
-    chinese_name = ''.join([chinese_map.get(ch, ch) for ch in name])
-    
-    return korean_name, chinese_name
-
-# ==================== أزرار ====================
+# ============= أزرار =============
 
 def main_menu():
     markup = InlineKeyboardMarkup(row_width=2)
-    btn1 = InlineKeyboardButton("✨ زخرفة النصوص", callback_data="decorate")
-    btn2 = InlineKeyboardButton("🌍 تحويل الاسم", callback_data="translate")
-    btn3 = InlineKeyboardButton("📝 بايوهات جاهزة", callback_data="bios")
-    btn4 = InlineKeyboardButton("🎨 تأثيرات إضافية", callback_data="effects")
-    markup.add(btn1, btn2, btn3, btn4)
-    return markup
-
-def lang_menu():
-    markup = InlineKeyboardMarkup(row_width=2)
-    btn1 = InlineKeyboardButton("🇸🇦 عربي", callback_data="lang_arabic")
-    btn2 = InlineKeyboardButton("🇬🇧 إنجليزي", callback_data="lang_english")
+    btn1 = InlineKeyboardButton("🇸🇦 زخرفة عربية", callback_data="arabic")
+    btn2 = InlineKeyboardButton("🇬🇧 زخرفة إنجليزية", callback_data="english")
     markup.add(btn1, btn2)
     return markup
 
-def bio_menu():
-    markup = InlineKeyboardMarkup(row_width=2)
-    btn1 = InlineKeyboardButton("💚 واتساب", callback_data="bio_whatsapp")
-    btn2 = InlineKeyboardButton("📸 إنستجرام", callback_data="bio_instagram")
-    btn3 = InlineKeyboardButton("💬 ماسنجر", callback_data="bio_messenger")
-    btn4 = InlineKeyboardButton("🔙 رجوع", callback_data="back")
-    markup.add(btn1, btn2, btn3, btn4)
+def get_more_button(name, lang):
+    markup = InlineKeyboardMarkup()
+    btn1 = InlineKeyboardButton("⏩ المزيد", callback_data=f"more_{lang}_{name}")
+    btn2 = InlineKeyboardButton("🔁 اسم جديد", callback_data="new")
+    markup.add(btn1, btn2)
     return markup
 
-def effect_menu():
-    markup = InlineKeyboardMarkup(row_width=2)
-    btn1 = InlineKeyboardButton("📏 خط تحت", callback_data="effect_underline")
-    btn2 = InlineKeyboardButton("✂️ خط وسط", callback_data="effect_strike")
-    btn3 = InlineKeyboardButton("🔄 نص مقلوب", callback_data="effect_reverse")
-    btn4 = InlineKeyboardButton("␣ مسافات", callback_data="effect_spaces")
-    btn5 = InlineKeyboardButton("📦 مربع", callback_data="effect_box")
-    btn6 = InlineKeyboardButton("🔙 رجوع", callback_data="back")
-    markup.add(btn1, btn2, btn3, btn4, btn5, btn6)
-    return markup
+# ============= تخزين مؤقت للأسماء =============
+user_names = {}
 
-# ==================== أوامر البوت ====================
+# ============= أوامر البوت =============
 
-@bot.message_handler(commands=['start', 'help'])
-def send_welcome(message):
-    welcome_text = """
-🌟 **مرحبًا بك في بوت الزخرفة المتقدم!** 🌟
+@bot.message_handler(commands=['start'])
+def start(message):
+    bot.send_message(
+        message.chat.id,
+        "✨ **مرحباً بك في بوت الزخرفة المتقدم!** ✨\n\n"
+        "📌 **أرسل اسمك أو أي نص تريد زخرفته**\n"
+        "📌 **اختر نوع الزخرفة (عربي/إنجليزي)**\n"
+        "📌 **اضغط على النص للنسخ المباشر**\n\n"
+        "🎯 **أرسل النص الآن:**",
+        parse_mode='Markdown'
+    )
+    bot.register_next_step_handler(message, save_name)
 
-📌 **أرسل أي نص وسأقوم بزخرفته لك**
-📌 **اختر من القائمة ما يناسبك**
-
-✅ **جميع النصوص قابلة للنسخ بالضغط عليها مباشرة**
-"""
-    bot.send_message(message.chat.id, welcome_text, parse_mode='Markdown', reply_markup=main_menu())
+def save_name(message):
+    """حفظ الاسم"""
+    user_names[message.chat.id] = message.text
+    bot.send_message(
+        message.chat.id,
+        f"✅ تم استلام: **{message.text}**\n\n"
+        f"🎨 **اختر نوع الزخرفة:**",
+        parse_mode='Markdown',
+        reply_markup=main_menu()
+    )
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback(call):
-    if call.data == "decorate":
-        bot.answer_callback_query(call.id, "📝 أرسل النص الآن")
-        msg = bot.send_message(call.message.chat.id, "📝 **أرسل النص الذي تريد زخرفته:**", parse_mode='Markdown')
-        bot.register_next_step_handler(msg, ask_lang)
+    user_id = call.message.chat.id
+    name = user_names.get(user_id, "")
     
-    elif call.data == "translate":
-        bot.answer_callback_query(call.id, "🌍 أرسل الاسم الآن")
-        msg = bot.send_message(call.message.chat.id, "🌍 **أرسل الاسم (عربي أو إنجليزي) لتحويله:**", parse_mode='Markdown')
-        bot.register_next_step_handler(msg, show_translations)
+    if not name:
+        bot.edit_message_text(
+            "⚠️ يرجى إرسال الاسم أولاً\nأرسل /start للبدء",
+            call.message.chat.id,
+            call.message.message_id
+        )
+        bot.answer_callback_query(call.id)
+        return
     
-    elif call.data == "bios":
-        bot.edit_message_text("📝 **اختر نوع البايو:**", call.message.chat.id, call.message.message_id, reply_markup=bio_menu())
+    if call.data == "new":
+        bot.edit_message_text(
+            "📝 أرسل الاسم الجديد:",
+            call.message.chat.id,
+            call.message.message_id
+        )
+        bot.register_next_step_handler(call.message, save_name)
+        bot.answer_callback_query(call.id)
+        return
     
-    elif call.data == "effects":
-        bot.edit_message_text("🎨 **اختر التأثير المطلوب:**\n\n📌 أرسل النص أولاً ثم اختر التأثير", 
-                              call.message.chat.id, call.message.message_id, reply_markup=effect_menu())
+    if call.data == "arabic":
+        styles = random.sample(arabic_styles, min(10, len(arabic_styles)))
+        response = "🇸🇦 **زخارف عربية** 🇸🇦\n\n"
+        for style in styles:
+            response += f"{style['emoji']} {style['func'](name)}\n\n"
+        
+        bot.edit_message_text(
+            response,
+            call.message.chat.id,
+            call.message.message_id,
+            parse_mode='HTML',
+            reply_markup=get_more_button(name, "arabic")
+        )
+        bot.answer_callback_query(call.id)
     
-    elif call.data.startswith("lang_"):
-        lang = call.data.split("_")[1]
-        user_text = get_user_text(call.message.chat.id)
-        if user_text:
-            show_decorations(call.message.chat.id, user_text, lang, call.message.message_id)
-        else:
-            bot.send_message(call.message.chat.id, "⚠️ يرجى إرسال النص أولاً")
-    
-    elif call.data.startswith("bio_"):
-        bio_type = call.data.split("_")[1]
-        show_bios(call.message.chat.id, bio_type, call.message.message_id)
-    
-    elif call.data.startswith("effect_"):
-        effect = call.data.split("_")[1]
-        bot.answer_callback_query(call.id, "📝 أرسل النص الآن")
-        msg = bot.send_message(call.message.chat.id, f"🎨 **أرسل النص لتطبيق التأثير:**", parse_mode='Markdown')
-        bot.register_next_step_handler(msg, lambda m: apply_effect(m, effect))
-    
-    elif call.data == "back":
-        bot.edit_message_text("🌟 **القائمة الرئيسية:**", call.message.chat.id, call.message.message_id, reply_markup=main_menu())
+    elif call.data == "english":
+        styles = random.sample(english_styles, min(10, len(english_styles)))
+        response = "🇬🇧 **زخارف إنجليزية** 🇬🇧\n\n"
+        for style in styles:
+            response += f"{style['emoji']} {style['func'](name)}\n\n"
+        
+        bot.edit_message_text(
+            response,
+            call.message.chat.id,
+            call.message.message_id,
+            parse_mode='HTML',
+            reply_markup=get_more_button(name, "english")
+        )
+        bot.answer_callback_query(call.id)
     
     elif call.data.startswith("more_"):
-        _, text, lang, offset = call.data.split("|")
-        show_more_decorations(call.message.chat.id, text, lang, int(offset), call.message.message_id)
-    
-    elif call.data.startswith("refresh_"):
-        _, bio_type = call.data.split("|")
-        show_bios(call.message.chat.id, bio_type, call.message.message_id)
+        parts = call.data.split("_", 2)
+        lang = parts[1]
+        name_text = parts[2]
+        
+        if lang == "arabic":
+            styles = random.sample(arabic_styles, min(10, len(arabic_styles)))
+            response = "🇸🇦 **المزيد من الزخارف العربية** 🇸🇦\n\n"
+            for style in styles:
+                response += f"{style['emoji']} {style['func'](name_text)}\n\n"
+        else:
+            styles = random.sample(english_styles, min(10, len(english_styles)))
+            response = "🇬🇧 **المزيد من الزخارف الإنجليزية** 🇬🇧\n\n"
+            for style in styles:
+                response += f"{style['emoji']} {style['func'](name_text)}\n\n"
+        
+        bot.edit_message_text(
+            response,
+            call.message.chat.id,
+            call.message.message_id,
+            parse_mode='HTML',
+            reply_markup=get_more_button(name_text, lang)
+        )
+        bot.answer_callback_query(call.id)
 
-# ==================== دوال رئيسية ====================
-
-user_texts = {}
-
-def get_user_text(chat_id):
-    return user_texts.get(chat_id, None)
-
-def ask_lang(message):
-    user_texts[message.chat.id] = message.text
-    bot.send_message(message.chat.id, "🗣️ **اختر لغة الزخرفة:**", parse_mode='Markdown', reply_markup=lang_menu())
-
-def show_decorations(chat_id, text, lang, msg_id=None):
-    decorations = get_random_decorations(text, lang, 10)
-    response = "✨ **زخارفك:** ✨\n\n" + "\n\n".join(decorations)
-    markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("⏩ المزيد", callback_data=f"more_{text}|{lang}|10"))
-    markup.add(InlineKeyboardButton("🔙 رجوع", callback_data="back"))
-    
-    if msg_id:
-        bot.edit_message_text(response, chat_id, msg_id, parse_mode='Markdown', reply_markup=markup)
-    else:
-        bot.send_message(chat_id, response, parse_mode='Markdown', reply_markup=markup)
-
-def show_more_decorations(chat_id, text, lang, offset, msg_id):
-    new_decorations = get_random_decorations(text, lang, 10)
-    response = "✨ **زخارف إضافية:** ✨\n\n" + "\n\n".join(new_decorations)
-    markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("⏩ المزيد", callback_data=f"more_{text}|{lang}|{offset+10}"))
-    markup.add(InlineKeyboardButton("🔙 رجوع", callback_data="back"))
-    bot.edit_message_text(response, chat_id, msg_id, parse_mode='Markdown', reply_markup=markup)
-
-def show_translations(message):
-    name = message.text
-    korean, chinese = get_translations(name)
-    
-    response = f"🌍 **تحويل الاسم:** 🌍\n\n"
-    response += f"🇰🇷 **كوري:**\n`{korean}`\n\n"
-    response += f"🇨🇳 **صيني:**\n`{chinese}`"
-    
-    bot.send_message(message.chat.id, response, parse_mode='Markdown')
-
-def show_bios(chat_id, bio_type, msg_id=None):
-    if bio_type == "whatsapp":
-        bios = random.sample(whatsapp_bios, min(5, len(whatsapp_bios)))
-        title = "💚 **بايوهات واتساب:** 💚"
-    elif bio_type == "instagram":
-        bios = random.sample(instagram_bios, min(5, len(instagram_bios)))
-        title = "📸 **بايوهات إنستجرام:** 📸"
-    else:
-        bios = random.sample(messenger_bios, min(5, len(messenger_bios)))
-        title = "💬 **بايوهات ماسنجر:** 💬"
-    
-    response = title + "\n\n" + "\n\n".join(bios)
-    markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("🔄 تغيير", callback_data=f"refresh_{bio_type}"))
-    markup.add(InlineKeyboardButton("🔙 رجوع", callback_data="bios"))
-    
-    if msg_id:
-        bot.edit_message_text(response, chat_id, msg_id, parse_mode='Markdown', reply_markup=markup)
-    else:
-        bot.send_message(chat_id, response, parse_mode='Markdown', reply_markup=markup)
-
-def apply_effect(message, effect):
-    text = message.text
-    result = ""
-    
-    if effect == "underline":
-        result = f"<u>{text}</u>"
-    elif effect == "strike":
-        result = f"<s>{text}</s>"
-    elif effect == "reverse":
-        result = text[::-1]
-    elif effect == "spaces":
-        result = " ".join(text)
-    elif effect == "box":
-        result = f"┌───┐\n│{text}│\n└───┘"
-    
-    bot.send_message(message.chat.id, f"🎨 **النتيجة:**\n\n`{result}`", parse_mode='Markdown')
-
-# ==================== تشغيل البوت ====================
+# ============= تشغيل البوت =============
 
 if __name__ == "__main__":
-    print("✅ البوت يعمل الآن...")
+    print("✅ بوت الزخرفة يعمل...")
+    print(f"🤖 @{bot.get_me().username}")
     bot.infinity_polling()
