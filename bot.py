@@ -5,7 +5,7 @@ import string
 import re
 
 # ضع التوكن الخاص بك هنا
-TOKEN = "YOUR_BOT_TOKEN"
+TOKEN = "8633043777:AAHPtW9zkm_vfiCuN917UzcBNt7tFdJoWo8"
 bot = telebot.TeleBot(TOKEN)
 
 # ==================== قواميس الزخرفة ====================
