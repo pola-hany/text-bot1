@@ -43,7 +43,6 @@ WHATSAPP_BIOS = [
     "🎵 موسيقى الروح 🎵", "🎶 نغمات الأمل 🎶", "🎼 لحن الحياة 🎼",
 ]
 
-# ============= 200 بايو إنستجرام =============
 INSTAGRAM_BIOS = [
     "📸 | Just vibes ✨", "💫 | Living my best life", "❤️ | Love & Peace",
     "🎯 | Dream chaser", "🌙 | Night owl", "🔥 | Hustle mode",
@@ -82,7 +81,6 @@ INSTAGRAM_BIOS = [
     "👾 | Gamer", "🎭 | Performer", "🎪 | Entertainer",
 ]
 
-# ============= 200 بايو ماسنجر =============
 MESSENGER_BIOS = [
     "💬 | متاح للكلام أحيانًا", "🎮 | Gaming mode on", "📱 | Offline life online",
     "💭 | أفكار عشوائية", "🎧 | Music is life", "📚 | قراءة وكتابة",
@@ -139,17 +137,29 @@ def register_bios_handlers(bot: TeleBot):
         markup.add(btn1, btn2, btn3)
         markup.add(btn4)
         
-        bot.edit_message_text(
-            "📝 **اختر نوع البايو:**\n\n"
-            "• 💚 **واتساب** - بايوهات واتساب مميزة\n"
-            "• 📸 **إنستجرام** - بايوهات إنستجرام عصرية\n"
-            "• 💬 **ماسنجر** - بايوهات ماسنجر متنوعة\n\n"
-            f"✨ **يوجد {len(WHATSAPP_BIOS)} بايو لكل قسم**",
-            call.message.chat.id,
-            call.message.message_id,
-            parse_mode='Markdown',
-            reply_markup=markup
-        )
+        try:
+            bot.edit_message_text(
+                "📝 **اختر نوع البايو:**\n\n"
+                "• 💚 **واتساب** - بايوهات واتساب مميزة\n"
+                "• 📸 **إنستجرام** - بايوهات إنستجرام عصرية\n"
+                "• 💬 **ماسنجر** - بايوهات ماسنجر متنوعة\n\n"
+                f"✨ **يوجد {len(WHATSAPP_BIOS)} بايو لكل قسم**",
+                call.message.chat.id,
+                call.message.message_id,
+                parse_mode='Markdown',
+                reply_markup=markup
+            )
+        except:
+            bot.send_message(
+                call.message.chat.id,
+                "📝 **اختر نوع البايو:**\n\n"
+                "• 💚 **واتساب** - بايوهات واتساب مميزة\n"
+                "• 📸 **إنستجرام** - بايوهات إنستجرام عصرية\n"
+                "• 💬 **ماسنجر** - بايوهات ماسنجر متنوعة\n\n"
+                f"✨ **يوجد {len(WHATSAPP_BIOS)} بايو لكل قسم**",
+                parse_mode='Markdown',
+                reply_markup=markup
+            )
         bot.answer_callback_query(call.id)
     
     @bot.callback_query_handler(func=lambda call: call.data.startswith("bio_"))
@@ -160,31 +170,26 @@ def register_bios_handlers(bot: TeleBot):
         if bio_type == "whatsapp":
             bio = random.choice(WHATSAPP_BIOS)
             title = "💚 **بايو واتساب:** 💚"
-            emoji = "💚"
-            total = len(WHATSAPP_BIOS)
         elif bio_type == "instagram":
             bio = random.choice(INSTAGRAM_BIOS)
             title = "📸 **بايو إنستجرام:** 📸"
-            emoji = "📸"
-            total = len(INSTAGRAM_BIOS)
         else:
             bio = random.choice(MESSENGER_BIOS)
             title = "💬 **بايو ماسنجر:** 💬"
-            emoji = "💬"
-            total = len(MESSENGER_BIOS)
         
         # حذف الرسالة السابقة
-        bot.delete_message(call.message.chat.id, call.message.message_id)
+        try:
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+        except:
+            pass
         
-        # عرض البايو في رسالة منفصلة
+        # عرض البايو
         response = f"{title}\n\n`{bio}`\n\n✨ **لنسخ البايو اضغط على النص أعلاه**"
         
         markup = InlineKeyboardMarkup()
-        btn1 = InlineKeyboardButton("🔄 بايو جديد", callback_data=f"refresh_bio_{bio_type}")
-        btn2 = InlineKeyboardButton("📋 نسخ", callback_data=f"copy_bio_{bio_type}_{bio[:50]}")
-        btn3 = InlineKeyboardButton("🔙 رجوع", callback_data="bios")
+        btn1 = InlineKeyboardButton("🔄 بايو جديد", callback_data=f"refresh_{bio_type}")
+        btn2 = InlineKeyboardButton("🔙 رجوع", callback_data="bios")
         markup.add(btn1, btn2)
-        markup.add(btn3)
         
         bot.send_message(
             call.message.chat.id,
@@ -192,36 +197,35 @@ def register_bios_handlers(bot: TeleBot):
             parse_mode='Markdown',
             reply_markup=markup
         )
-        bot.answer_callback_query(call.id, f"✨ {emoji} بايو جديد")
+        bot.answer_callback_query(call.id, "✨ بايو جديد")
     
-    @bot.callback_query_handler(func=lambda call: call.data.startswith("refresh_bio_"))
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("refresh_"))
     def refresh_bio(call):
         """تحديث البايو"""
-        bio_type = call.data.split("_")[2]
+        bio_type = call.data.split("_")[1]
         
         if bio_type == "whatsapp":
             bio = random.choice(WHATSAPP_BIOS)
             title = "💚 **بايو واتساب:** 💚"
-            emoji = "💚"
         elif bio_type == "instagram":
             bio = random.choice(INSTAGRAM_BIOS)
             title = "📸 **بايو إنستجرام:** 📸"
-            emoji = "📸"
         else:
             bio = random.choice(MESSENGER_BIOS)
             title = "💬 **بايو ماسنجر:** 💬"
-            emoji = "💬"
         
-        bot.delete_message(call.message.chat.id, call.message.message_id)
+        # حذف الرسالة السابقة
+        try:
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+        except:
+            pass
         
         response = f"{title}\n\n`{bio}`\n\n✨ **لنسخ البايو اضغط على النص أعلاه**"
         
         markup = InlineKeyboardMarkup()
-        btn1 = InlineKeyboardButton("🔄 بايو جديد", callback_data=f"refresh_bio_{bio_type}")
-        btn2 = InlineKeyboardButton("📋 نسخ", callback_data=f"copy_bio_{bio_type}_{bio[:50]}")
-        btn3 = InlineKeyboardButton("🔙 رجوع", callback_data="bios")
+        btn1 = InlineKeyboardButton("🔄 بايو جديد", callback_data=f"refresh_{bio_type}")
+        btn2 = InlineKeyboardButton("🔙 رجوع", callback_data="bios")
         markup.add(btn1, btn2)
-        markup.add(btn3)
         
         bot.send_message(
             call.message.chat.id,
@@ -229,9 +233,4 @@ def register_bios_handlers(bot: TeleBot):
             parse_mode='Markdown',
             reply_markup=markup
         )
-        bot.answer_callback_query(call.id, f"✨ {emoji} بايو جديد")
-    
-    @bot.callback_query_handler(func=lambda call: call.data.startswith("copy_bio_"))
-    def copy_bio(call):
-        """تنبيه نسخ البايو"""
-        bot.answer_callback_query(call.id, "📋 تم نسخ البايو! يمكنك لصقه الآن", show_alert=False)
+        bot.answer_callback_query(call.id, "✨ بايو جديد")
