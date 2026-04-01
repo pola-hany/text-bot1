@@ -15,7 +15,7 @@ bot = telebot.TeleBot(TOKEN, parse_mode='HTML')
 # تسجيل جميع المعالجات
 register_all_handlers(bot)
 
-# إزالة webhook إذا كان موجوداً (لحل مشكلة 409)
+# إزالة webhook إذا كان موجوداً
 try:
     bot.remove_webhook()
     print("✅ تم إزالة webhook")
@@ -38,12 +38,12 @@ if __name__ == "__main__":
     print("   𓂀 8+ ترجمة فرعونية")
     print("   📝 200+ بايو لكل قسم")
     print("   🎨 تأثيرات إضافية")
+    print("   👑 لوحة تحكم الادمن")
     print("=" * 50)
     
     # استخدام polling مع إعادة محاولة عند الخطأ
     while True:
         try:
-            # polling بدون threading
             bot.polling(none_stop=True, interval=0, timeout=60, long_polling_timeout=60)
         except Exception as e:
             print(f"⚠️ خطأ في polling: {e}")
