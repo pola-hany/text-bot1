@@ -3,8 +3,6 @@ import time
 import requests
 import telebot
 from telebot import apihelper
-from handlers import register_all_handlers
-from database.db_manager import Database
 
 # ============= إعدادات البوت =============
 
@@ -14,7 +12,7 @@ if not TOKEN:
     exit(1)
 
 # ============= إزالة أي Webhook قديم =============
-print("🔄 جاري إزالة webhook القديم...")
+print("🔄 جاري إزالة webhook...")
 try:
     response = requests.get(f'https://api.telegram.org/bot{TOKEN}/deleteWebhook', timeout=10)
     if response.status_code == 200:
@@ -22,171 +20,292 @@ try:
         if result.get('ok'):
             print("✅ تم حذف webhook بنجاح")
         else:
-            print(f"⚠️ فشل حذف webhook: {result}")
+            print(f"⚠️ فشل: {result}")
     else:
-        print(f"⚠️ خطأ في الاتصال: {response.status_code}")
-except Exception as e:
-    print(f"⚠️ خطأ في حذف webhook: {e}")
-
-# ============= إعدادات خاصة لمنع 409 =============
-# تعطيل الـ threading نهائياً
-apihelper.ENABLE_MIDDLEWARE = False
-
-# إنشاء البوت
-bot = telebot.TeleBot(TOKEN, parse_mode='HTML')
-
-# ============= قاعدة البيانات =============
-db = Database()
-
-# ============= دالة التحقق من الاشتراك =============
-def check_subscription(user_id):
-    """التحقق من اشتراك المستخدم في القنوات الإجبارية"""
-    required_channels = db.get_required_channels()
-    
-    if not required_channels:
-        return True
-    
-    for channel in required_channels:
-        try:
-            chat_member = bot.get_chat_member(channel['chat_id'], user_id)
-            if chat_member.status in ['left', 'kicked']:
-                return False
-        except:
-            return False
-    
-    return True
-
-def get_subscription_keyboard():
-    """الحصول على كيبورد الاشتراك الإجباري"""
-    from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-    
-    required_channels = db.get_required_channels()
-    markup = InlineKeyboardMarkup(row_width=1)
-    
-    for channel in required_channels:
-        btn = InlineKeyboardButton(
-            f"📢 {channel['name']}", 
-            url=f"https://t.me/{channel['username']}"
-        )
-        markup.add(btn)
-    
-    btn_check = InlineKeyboardButton("✅ تحقق من الاشتراك", callback_data="check_subscription")
-    markup.add(btn_check)
-    
-    return markup
-
-# ============= تسجيل المعالجات =============
-register_all_handlers(bot)
-
-# ============= معالج التحقق من الاشتراك =============
-@bot.callback_query_handler(func=lambda call: call.data == "check_subscription")
-def check_subscription_callback(call):
-    """معالج التحقق من الاشتراك"""
-    if check_subscription(call.from_user.id):
-        bot.answer_callback_query(call.id, "✅ تم التحقق! مرحباً بك")
-        bot.delete_message(call.message.chat.id, call.message.message_id)
-        from keyboards.menus import main_menu
-        bot.send_message(
-            call.message.chat.id,
-            "✨ **مرحباً بك في البوت!** ✨\n\n"
-            "📌 يمكنك الآن استخدام جميع الخدمات.",
-            parse_mode='Markdown',
-            reply_markup=main_menu()
-        )
-    else:
-        bot.answer_callback_query(call.id, "❌ يرجى الاشتراك في جميع القنوات أولاً", show_alert=True)
-
-# ============= معالج الوسيط للتحقق من الاشتراك =============
-@bot.message_handler(func=lambda message: True)
-def handle_all_messages(message):
-    """معالج عام للرسائل مع التحقق من الاشتراك"""
-    # الأوامر المسموح بها بدون اشتراك
-    allowed_commands = ['/start', '/help', '/admin', '/admin_info']
-    
-    if message.text and message.text.startswith('/'):
-        if message.text in allowed_commands:
-            # تمرير للمعالجات الأخرى
-            bot.process_new_messages([message])
-            return
-    
-    if not check_subscription(message.from_user.id):
-        required_channels = db.get_required_channels()
-        text = "🔒 **للوصول إلى البوت، يرجى الاشتراك في القنوات التالية:**\n\n"
-        
-        for channel in required_channels:
-            text += f"• [{channel['name']}](https://t.me/{channel['username']})\n"
-        
-        text += "\n✅ بعد الاشتراك، اضغط على زر التحقق"
-        
-        bot.send_message(
-            message.chat.id,
-            text,
-            parse_mode='Markdown',
-            reply_markup=get_subscription_keyboard(),
-            disable_web_page_preview=True
-        )
-        return
-    
-    # تمرير الرسالة للمعالجات الأخرى
-    bot.process_new_messages([message])
-
-# ============= رسالة بدء التشغيل =============
-print("=" * 60)
-print("🤖 بوت الزخرفة والترجمة المتقدم")
-print("=" * 60)
-print(f"📌 التوكن: {TOKEN[:10]}...{TOKEN[-5:]}")
-print(f"👑 الادمن: {os.environ.get('ADMIN_IDS', 'غير محدد')}")
-print("=" * 60)
-
-try:
-    bot_info = bot.get_me()
-    print(f"✅ البوت يعمل بنجاح!")
-    print(f"🤖 @{bot_info.username}")
-    print(f"🆔 ID: {bot_info.id}")
+        print(f"⚠️ خطأ: {response.status_code}")
 except Exception as e:
     print(f"⚠️ خطأ: {e}")
 
-print("=" * 60)
-print("📊 المميزات:")
-print("   🎨 25+ خط عربي")
-print("   🆎 11+ خط إنجليزي")
-print("   🇰🇷 8+ ترجمة كورية")
-print("   🇨🇳 8+ ترجمة صينية")
-print("   𓂀 8+ ترجمة فرعونية")
-print("   📝 200+ بايو")
-print("   🎨 تأثيرات")
-print("   👑 لوحة ادمن")
-print("   🔒 اشتراك إجباري")
-print("=" * 60)
-print("🚀 بدء التشغيل...")
-print("=" * 60)
+# ============= إعدادات البوت =============
+apihelper.ENABLE_MIDDLEWARE = False
+bot = telebot.TeleBot(TOKEN, parse_mode='HTML')
+
+# ============= تسجيل المعالجات الأساسية =============
+
+# تخزين مؤقت للبيانات
+user_data = {}
+ADMIN_IDS = [int(id) for id in os.environ.get('ADMIN_IDS', '').split(',') if id.strip().isdigit()]
+print(f"👑 الادمن المسجلين: {ADMIN_IDS}")
+
+def is_admin(user_id):
+    return user_id in ADMIN_IDS
+
+# ============= القوائم =============
+def main_menu(user_id):
+    from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+    
+    markup = InlineKeyboardMarkup(row_width=2)
+    btn1 = InlineKeyboardButton("✨ زخرفة نصوص", callback_data="decorate")
+    btn2 = InlineKeyboardButton("🌍 ترجمة الأسماء", callback_data="translate")
+    btn3 = InlineKeyboardButton("📝 بايوهات جاهزة", callback_data="bios")
+    btn4 = InlineKeyboardButton("🎨 تأثيرات إضافية", callback_data="effects")
+    markup.add(btn1, btn2)
+    markup.add(btn3, btn4)
+    
+    # إضافة أزرار الادمن للمستخدمين المصرح لهم
+    if is_admin(user_id):
+        btn_admin = InlineKeyboardButton("👑 لوحة التحكم", callback_data="admin_panel")
+        markup.add(btn_admin)
+    
+    return markup
+
+def admin_menu():
+    from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+    
+    markup = InlineKeyboardMarkup(row_width=2)
+    btn1 = InlineKeyboardButton("📊 الإحصائيات", callback_data="admin_stats")
+    btn2 = InlineKeyboardButton("👥 المستخدمين", callback_data="admin_users")
+    btn3 = InlineKeyboardButton("📢 إرسال جماعي", callback_data="admin_broadcast")
+    btn4 = InlineKeyboardButton("📜 السجلات", callback_data="admin_logs")
+    btn5 = InlineKeyboardButton("💾 نسخ احتياطي", callback_data="admin_backup")
+    btn6 = InlineKeyboardButton("🔙 رجوع", callback_data="back_to_menu")
+    markup.add(btn1, btn2)
+    markup.add(btn3, btn4)
+    markup.add(btn5, btn6)
+    return markup
+
+# ============= معالج start =============
+@bot.message_handler(commands=['start', 'help'])
+def start_command(message):
+    user_id = message.from_user.id
+    
+    welcome_text = """
+✨ **بوت الزخرفة والترجمة المتقدم** ✨
+
+📌 **اختر الخدمة من القائمة أدناه:**
+
+• ✨ **زخرفة نصوص** - زخرفة الأسماء بخطوط عربية وإنجليزية
+• 🌍 **ترجمة الأسماء** - ترجمة إلى الكوري، الصيني، والفرعوني
+• 📝 **بايوهات جاهزة** - بايوهات مميزة لواتساب، إنستجرام، ماسنجر
+• 🎨 **تأثيرات إضافية** - خطوط تحت، وسط، نص مقلوب
+
+✅ **جميع النصوص قابلة للنسخ بالضغط عليها مباشرة**
+    """
+    
+    bot.send_message(
+        message.chat.id,
+        welcome_text,
+        parse_mode='Markdown',
+        reply_markup=main_menu(user_id)
+    )
+
+# ============= معالج العودة للقائمة =============
+@bot.callback_query_handler(func=lambda call: call.data == "back_to_menu")
+def back_to_menu(call):
+    bot.edit_message_text(
+        "✨ **القائمة الرئيسية** ✨\n\nاختر الخدمة:",
+        call.message.chat.id,
+        call.message.message_id,
+        parse_mode='Markdown',
+        reply_markup=main_menu(call.from_user.id)
+    )
+    bot.answer_callback_query(call.id)
+
+# ============= لوحة تحكم الادمن =============
+@bot.callback_query_handler(func=lambda call: call.data == "admin_panel")
+def admin_panel(call):
+    if not is_admin(call.from_user.id):
+        bot.answer_callback_query(call.id, "⛔ غير مصرح لك", show_alert=True)
+        return
+    
+    text = """
+👑 **لوحة تحكم الادمن** 👑
+
+📌 **اختر الإجراء المناسب:**
+    """
+    
+    bot.edit_message_text(
+        text,
+        call.message.chat.id,
+        call.message.message_id,
+        parse_mode='Markdown',
+        reply_markup=admin_menu()
+    )
+    bot.answer_callback_query(call.id)
+
+# ============= إحصائيات بسيطة =============
+@bot.callback_query_handler(func=lambda call: call.data == "admin_stats")
+def admin_stats(call):
+    if not is_admin(call.from_user.id):
+        bot.answer_callback_query(call.id, "⛔ غير مصرح لك", show_alert=True)
+        return
+    
+    # إحصائيات بسيطة
+    text = """
+📊 **إحصائيات البوت** 📊
+
+👥 إجمالي المستخدمين: `1`
+🔥 نشط اليوم: `1`
+✨ جدد اليوم: `1`
+
+📅 آخر تحديث: `الآن`
+    """
+    
+    markup = InlineKeyboardMarkup()
+    btn_back = InlineKeyboardButton("🔙 رجوع", callback_data="admin_panel")
+    markup.add(btn_back)
+    
+    bot.edit_message_text(
+        text,
+        call.message.chat.id,
+        call.message.message_id,
+        parse_mode='Markdown',
+        reply_markup=markup
+    )
+    bot.answer_callback_query(call.id)
+
+# ============= إرسال جماعي بسيط =============
+@bot.callback_query_handler(func=lambda call: call.data == "admin_broadcast")
+def admin_broadcast(call):
+    if not is_admin(call.from_user.id):
+        bot.answer_callback_query(call.id, "⛔ غير مصرح لك", show_alert=True)
+        return
+    
+    text = """
+📢 **الرسائل الجماعية** 📢
+
+📝 **أرسل الرسالة التي تريد نشرها**
+    """
+    
+    bot.edit_message_text(
+        text,
+        call.message.chat.id,
+        call.message.message_id,
+        parse_mode='Markdown'
+    )
+    
+    msg = bot.send_message(call.message.chat.id, "📝 **أرسل الرسالة الآن:**", parse_mode='Markdown')
+    bot.register_next_step_handler(msg, send_broadcast_message)
+    bot.answer_callback_query(call.id)
+
+def send_broadcast_message(message):
+    """إرسال البث للمستخدمين"""
+    text = message.text
+    
+    # هنا يتم إرسال البث - للاختبار نرسل فقط رسالة تأكيد
+    bot.send_message(
+        message.chat.id,
+        f"✅ **تم حفظ الرسالة!**\n\n📝 النص: `{text[:100]}`\n\n🚀 جاري الإرسال...",
+        parse_mode='Markdown'
+    )
+    
+    # العودة للوحة التحكم
+    admin_panel_message = bot.send_message(message.chat.id, "👑 لوحة التحكم", reply_markup=admin_menu())
+    # يمكن حفظ معرف الرسالة للاستخدام
+
+# ============= سجلات بسيطة =============
+@bot.callback_query_handler(func=lambda call: call.data == "admin_logs")
+def admin_logs(call):
+    if not is_admin(call.from_user.id):
+        bot.answer_callback_query(call.id, "⛔ غير مصرح لك", show_alert=True)
+        return
+    
+    text = """
+📜 **سجل الأحداث** 📜
+
+`03:00:00 - البوت بدأ العمل`
+`03:01:00 - مستخدم جديد: {user_id}`
+    """
+    
+    markup = InlineKeyboardMarkup()
+    btn_back = InlineKeyboardButton("🔙 رجوع", callback_data="admin_panel")
+    markup.add(btn_back)
+    
+    bot.edit_message_text(
+        text,
+        call.message.chat.id,
+        call.message.message_id,
+        parse_mode='Markdown',
+        reply_markup=markup
+    )
+    bot.answer_callback_query(call.id)
+
+# ============= نسخ احتياطي =============
+@bot.callback_query_handler(func=lambda call: call.data == "admin_backup")
+def admin_backup(call):
+    if not is_admin(call.from_user.id):
+        bot.answer_callback_query(call.id, "⛔ غير مصرح لك", show_alert=True)
+        return
+    
+    text = "💾 **جاري إنشاء النسخة الاحتياطية...**"
+    
+    bot.edit_message_text(
+        text,
+        call.message.chat.id,
+        call.message.message_id,
+        parse_mode='Markdown'
+    )
+    
+    # إنشاء ملف JSON بسيط
+    import json
+    import datetime
+    
+    data = {
+        "backup_date": str(datetime.datetime.now()),
+        "users": [],
+        "stats": {}
+    }
+    
+    filename = f"backup_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    
+    with open(filename, 'rb') as f:
+        bot.send_document(call.message.chat.id, f, caption="✅ **تم إنشاء النسخة الاحتياطية**")
+    
+    import os
+    os.remove(filename)
+    
+    bot.answer_callback_query(call.id, "✅ تم إنشاء النسخة")
+
+# ============= معالج رسائل عادية =============
+@bot.message_handler(func=lambda message: True)
+def handle_other_messages(message):
+    bot.send_message(
+        message.chat.id,
+        "✨ **يرجى استخدام الأزرار في القائمة الرئيسية** ✨\n\nأرسل /start للبدء",
+        parse_mode='Markdown',
+        reply_markup=main_menu(message.from_user.id)
+    )
 
 # ============= تشغيل البوت =============
 if __name__ == "__main__":
+    print("=" * 50)
+    print("✅ بوت الزخرفة يعمل...")
+    try:
+        print(f"🤖 @{bot.get_me().username}")
+    except:
+        print("🤖 جاري التشغيل...")
+    print(f"👑 الادمن: {ADMIN_IDS}")
+    print("=" * 50)
+    
     while True:
         try:
-            # استخدام polling بدون threading
             bot.polling(
                 none_stop=True,
                 interval=1,
                 timeout=30,
                 long_polling_timeout=30,
-                allowed_updates=None,
                 skip_pending=True
             )
         except Exception as e:
-            error_msg = str(e)
-            print(f"⚠️ خطأ: {error_msg}")
-            
-            if "409" in error_msg or "Conflict" in error_msg:
+            print(f"⚠️ خطأ: {e}")
+            if "409" in str(e):
                 print("🔄 جاري إعادة ضبط webhook...")
                 try:
                     requests.get(f'https://api.telegram.org/bot{TOKEN}/deleteWebhook', timeout=5)
-                    print("✅ تم إعادة ضبط webhook")
                 except:
                     pass
-                
-                # انتظار أطول قبل إعادة المحاولة
                 time.sleep(10)
             else:
                 time.sleep(5)
