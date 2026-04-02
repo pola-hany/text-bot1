@@ -1,5 +1,5 @@
 from telebot import TeleBot
-from keyboards.menus import main_menu
+from keyboards.menus import main_menu_with_admin
 
 def register_callback_handlers(bot: TeleBot):
     
@@ -10,6 +10,6 @@ def register_callback_handlers(bot: TeleBot):
             call.message.chat.id,
             call.message.message_id,
             parse_mode='Markdown',
-            reply_markup=main_menu(call.from_user.id)
+            reply_markup=main_menu_with_admin(call.from_user.id)
         )
         bot.answer_callback_query(call.id)

@@ -13,6 +13,19 @@ ADMIN_IDS = get_admin_ids()
 def is_admin(user_id):
     return user_id in ADMIN_IDS
 
+def get_admin_keyboard():
+    markup = InlineKeyboardMarkup(row_width=2)
+    btn1 = InlineKeyboardButton("📊 الإحصائيات", callback_data="admin_stats")
+    btn2 = InlineKeyboardButton("👥 المستخدمين", callback_data="admin_users")
+    btn3 = InlineKeyboardButton("📢 إرسال جماعي", callback_data="admin_broadcast")
+    btn4 = InlineKeyboardButton("📜 السجلات", callback_data="admin_logs")
+    btn5 = InlineKeyboardButton("💾 نسخ احتياطي", callback_data="admin_backup")
+    btn6 = InlineKeyboardButton("🔙 رجوع", callback_data="back_to_menu")
+    markup.add(btn1, btn2)
+    markup.add(btn3, btn4)
+    markup.add(btn5, btn6)
+    return markup
+
 def register_admin_handlers(bot: TeleBot):
     
     @bot.message_handler(commands=['admin'])
@@ -21,16 +34,12 @@ def register_admin_handlers(bot: TeleBot):
             bot.send_message(message.chat.id, "⛔ غير مصرح لك", parse_mode='Markdown')
             return
         
-        markup = InlineKeyboardMarkup(row_width=2)
-        btn1 = InlineKeyboardButton("📊 الإحصائيات", callback_data="admin_stats")
-        btn2 = InlineKeyboardButton("👥 المستخدمين", callback_data="admin_users")
-        btn3 = InlineKeyboardButton("📢 إرسال جماعي", callback_data="admin_broadcast")
-        btn4 = InlineKeyboardButton("📜 السجلات", callback_data="admin_logs")
-        btn5 = InlineKeyboardButton("💾 نسخ احتياطي", callback_data="admin_backup")
-        btn6 = InlineKeyboardButton("🔙 رجوع", callback_data="back_to_menu")
-        markup.add(btn1, btn2, btn3, btn4, btn5, btn6)
-        
-        bot.send_message(message.chat.id, "👑 **لوحة تحكم الادمن**", parse_mode='Markdown', reply_markup=markup)
+        bot.send_message(
+            message.chat.id,
+            "👑 **لوحة تحكم الادمن**",
+            parse_mode='Markdown',
+            reply_markup=get_admin_keyboard()
+        )
     
     @bot.callback_query_handler(func=lambda call: call.data.startswith("admin_"))
     def handle_admin(call):

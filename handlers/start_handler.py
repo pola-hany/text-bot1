@@ -1,5 +1,5 @@
 from telebot import TeleBot
-from keyboards.menus import main_menu
+from keyboards.menus import main_menu_with_admin
 
 def register_start_handlers(bot: TeleBot):
     
@@ -24,5 +24,5 @@ def register_start_handlers(bot: TeleBot):
             message.chat.id,
             welcome_text,
             parse_mode='Markdown',
-            reply_markup=main_menu(user_id)
+            reply_markup=main_menu_with_admin(user_id)
         )

@@ -1,7 +1,18 @@
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-from admin.admin_handler import is_admin
 
-def main_menu(user_id):
+def main_menu():
+    markup = InlineKeyboardMarkup(row_width=2)
+    btn1 = InlineKeyboardButton("✨ زخرفة نصوص", callback_data="decorate")
+    btn2 = InlineKeyboardButton("🌍 ترجمة الأسماء", callback_data="translate")
+    btn3 = InlineKeyboardButton("📝 بايوهات جاهزة", callback_data="bios")
+    btn4 = InlineKeyboardButton("🎨 تأثيرات إضافية", callback_data="effects")
+    markup.add(btn1, btn2)
+    markup.add(btn3, btn4)
+    return markup
+
+def main_menu_with_admin(user_id):
+    from admin.admin_handler import is_admin
+    
     markup = InlineKeyboardMarkup(row_width=2)
     btn1 = InlineKeyboardButton("✨ زخرفة نصوص", callback_data="decorate")
     btn2 = InlineKeyboardButton("🌍 ترجمة الأسماء", callback_data="translate")
@@ -17,7 +28,6 @@ def main_menu(user_id):
     return markup
 
 def get_more_button(name, lang):
-    """أزرار المزيد للزخرفة"""
     markup = InlineKeyboardMarkup()
     btn1 = InlineKeyboardButton("⏩ المزيد", callback_data=f"more_{lang}_{name}")
     btn2 = InlineKeyboardButton("🔄 نص جديد", callback_data="decorate")
@@ -26,7 +36,6 @@ def get_more_button(name, lang):
     return markup
 
 def get_translation_more_button(name, lang):
-    """أزرار المزيد للترجمة"""
     markup = InlineKeyboardMarkup()
     btn1 = InlineKeyboardButton("⏩ المزيد", callback_data=f"more_trans_{lang}_{name}")
     btn2 = InlineKeyboardButton("🔄 نص جديد", callback_data="translate")
@@ -35,7 +44,6 @@ def get_translation_more_button(name, lang):
     return markup
 
 def bio_menu():
-    """قائمة البايوهات"""
     markup = InlineKeyboardMarkup(row_width=2)
     btn1 = InlineKeyboardButton("💚 واتساب", callback_data="bio_whatsapp")
     btn2 = InlineKeyboardButton("📸 إنستجرام", callback_data="bio_instagram")
@@ -46,7 +54,6 @@ def bio_menu():
     return markup
 
 def effect_menu():
-    """قائمة التأثيرات"""
     markup = InlineKeyboardMarkup(row_width=2)
     btn1 = InlineKeyboardButton("📏 خط تحت", callback_data="effect_underline")
     btn2 = InlineKeyboardButton("✂️ خط وسط", callback_data="effect_strikethrough")
@@ -58,7 +65,6 @@ def effect_menu():
     return markup
 
 def lang_menu():
-    """قائمة اختيار اللغة للزخرفة"""
     markup = InlineKeyboardMarkup(row_width=2)
     btn1 = InlineKeyboardButton("🇸🇦 عربي", callback_data="lang_arabic")
     btn2 = InlineKeyboardButton("🇬🇧 إنجليزي", callback_data="lang_english")
