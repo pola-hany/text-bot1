@@ -1,5 +1,6 @@
 import json
 import datetime
+import os
 from telebot import TeleBot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from database.db_manager import Database
@@ -42,8 +43,8 @@ class AdminPanel:
         with open(filename, 'rb') as f:
             bot.send_document(chat_id, f, caption="✅ **تم إنشاء النسخة الاحتياطية**")
         
-        import os
         os.remove(filename)
+        db.add_log("Backup created", "admin")
         
         if message_id:
             bot.edit_message_text("✅ تم إنشاء النسخة الاحتياطية", chat_id, message_id, parse_mode='Markdown')
