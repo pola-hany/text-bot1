@@ -4,6 +4,36 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any
 
 class Database:
+    # أضف هذه الدوال في class Database:
+
+    def get_required_channels(self):
+        """الحصول على قائمة القنوات الإجبارية"""
+        return self.data.get('required_channels', [])
+    
+    def add_required_channel(self, channel):
+        """إضافة قناة إجبارية"""
+        if 'required_channels' not in self.data:
+            self.data['required_channels'] = []
+        
+        # التأكد من عدم وجود القناة مسبقاً
+        for existing in self.data['required_channels']:
+            if existing['chat_id'] == channel['chat_id']:
+                return False
+        
+        self.data['required_channels'].append(channel)
+        self._save_data()
+        return True
+    
+    def remove_required_channel(self, chat_id):
+        """حذف قناة إجبارية"""
+        if 'required_channels' in self.data:
+            self.data['required_channels'] = [
+                ch for ch in self.data['required_channels'] 
+                if ch['chat_id'] != chat_id
+            ]
+            self._save_data()
+            return True
+        return False
     """مدير قاعدة البيانات - نسخة مبسطة باستخدام JSON"""
     
     def __init__(self, db_file='database.json'):
