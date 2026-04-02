@@ -1,8 +1,11 @@
 import random
 from telebot import TeleBot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from database.db_manager import Database
 
-# ============= 200 بايو واتساب =============
+db = Database()
+
+# 100 بايو لكل قسم
 WHATSAPP_BIOS = [
     "✨ الحياة بسيطة، لا تعقدها ✨", "💫 توكل على الله وتحرك 💫", "❤️ عيش حياتك بلا أسف ❤️",
     "🌙 لست متاحًا للجميع 🌙", "🔥 لا تقارنني بأحد 🔥", "🎯 راضي بقسمتي 🎯",
@@ -15,32 +18,6 @@ WHATSAPP_BIOS = [
     "🧡 شغف وحياة 🧡", "🖤 قوة وشموخ 🖤", "🤎 دفء وحنان 🤎",
     "💛 سعادة ونور 💛", "💝 حب غير مشروط 💝", "💖 قلب ينبض بالحياة 💖",
     "💗 حب صادق 💗", "💓 نبضات قلب 💓", "💕 حب بلا حدود 💕",
-    "💞 قصة حب 💞", "💘 سهم الحب 💘", "💌 رسالة حب 💌",
-    "🎭 حياتي مسرحية 🎭", "🎪 عجلة الحياة 🎪", "🎡 فرح وسعادة 🎡",
-    "🎢 مغامرات الحياة 🎢", "🎠 أحلام وردية 🎠", "🏰 مملكتي الخاصة 🏰",
-    "🏝️ جزيرة الهدوء 🏝️", "🏔️ قمة الطموح 🏔️", "🌋 شغف لا ينطفئ 🌋",
-    "🌈 قوس قزح حياتي 🌈", "🌅 فجر جديد 🌅", "🌄 غروب جميل 🌄",
-    "🌌 كون واسع 🌌", "🌠 أمنية تتحقق 🌠", "🎇 أفراح وأحلام 🎇",
-    "🎆 ليلة سعيدة 🎆", "🌃 ليالي هانئة 🌃", "🌁 ضباب الأحلام 🌁",
-    "🌉 جسر الأمل 🌉", "🌊 موج الحياة 🌊", "🍃 نسمات رقيقة 🍃",
-    "🍂 خريف العمر 🍂", "🌸 ربيع الحياة 🌸", "☀️ شمس الأمل ☀️",
-    "🌙 قمر الليالي 🌙", "⭐ نجمي الخاص ⭐", "☁️ سحابة هادئة ☁️",
-    "⛈️ عاصفة إيجابية ⛈️", "❄️ ثلج الصفاء ❄️", "🔥 حماس وشغف 🔥",
-    "⚡ طاقة لا تقهر ⚡", "💨 حرية واندفاع 💨", "💧 صفاء ونقاء 💧",
-    "🍀 حظ سعيد 🍀", "🎋 أماني تتحقق 🎋", "🎍 تفاؤل وأمل 🎍",
-    "🎑 مناظر جميلة 🎑", "🎇 أضواء الحياة 🎇", "🎆 أفراح وأحلام 🎆",
-    "🎊 مناسبات سعيدة 🎊", "🎉 أفراح وأعياد 🎉", "🎈 مرح وفرح 🎈",
-    "🎁 هدية الحياة 🎁", "🎀 لمسة أنثوية 🎀", "🎓 شهادة نجاح 🎓",
-    "🏆 إنجازاتي 🏆", "🥇 الأول دائماً 🥇", "🥈 الهدف القادم 🥈",
-    "🥉 خطوات النجاح 🥉", "🏅 إنجاز جديد 🏅", "🎖️ تكريم وتقدير 🎖️",
-    "🏆 بطل حياتي 🏆", "⚽ هدف جديد ⚽", "🏀 حلم يتحقق 🏀",
-    "⚾ ضربة معلم ⚾", "🎾 ضربة حظ 🎾", "🏐 فريق واحد 🏐",
-    "🏉 روح الفريق 🏉", "🎱 لعبة الحياة 🎱", "🎯 مستهدف 🎯",
-    "🎳 إسقاط الصعاب 🎳", "🎲 حظي حلو 🎲", "🎰 جائزة الحياة 🎰",
-    "🎮 تحكم بحياتك 🎮", "🎧 موسيقى وهدوء 🎧", "🎤 صوتي مسموع 🎤",
-    "🎸 عزف على أوتار الحياة 🎸", "🎹 سيمفونية الحياة 🎹", "🎺 عزف للحياة 🎺",
-    "🎷 نغمات ساحرة 🎷", "🥁 إيقاع الحياة 🥁", "🎻 كونشرتو الحب 🎻",
-    "🎵 موسيقى الروح 🎵", "🎶 نغمات الأمل 🎶", "🎼 لحن الحياة 🎼",
 ]
 
 INSTAGRAM_BIOS = [
@@ -52,33 +29,6 @@ INSTAGRAM_BIOS = [
     "🧘 | Spiritual being", "🤍 | Simplicity", "⚡ | Energy matters",
     "🌊 | Ocean soul", "🌸 | Flower child", "🌹 | Rose gold",
     "🦋 | Butterfly effect", "🐺 | Lone wolf", "🦁 | Lion heart",
-    "🐉 | Dragon spirit", "🕊️ | Peace keeper", "🌈 | Colorful mind",
-    "☀️ | Sunshine", "🌙 | Moon child", "⭐ | Star gazer",
-    "🌍 | Earth lover", "🌿 | Nature soul", "🍃 | Free spirit",
-    "🍂 | Autumn soul", "❄️ | Winter child", "🌸 | Spring heart",
-    "☕ | Coffee addict", "🍕 | Pizza lover", "🍣 | Sushi master",
-    "🍜 | Noodle life", "🍔 | Burger fan", "🍦 | Ice cream dream",
-    "🍩 | Donut worry", "🍫 | Chocolate lover", "🍪 | Cookie monster",
-    "🍷 | Wine not", "🍺 | Beer lover", "🥂 | Cheers",
-    "🎮 | Gamer", "💻 | Tech nerd", "📱 | Digital native",
-    "🎬 | Movie buff", "📺 | Series addict", "🎭 | Drama queen",
-    "🎪 | Circus life", "🎨 | Creative mind", "📸 | Photography",
-    "🎥 | Story teller", "🎞️ | Film maker", "📝 | Writer",
-    "🎤 | Singer", "🎸 | Guitarist", "🎹 | Pianist",
-    "🥁 | Drummer", "🎻 | Violinist", "🎺 | Trumpet",
-    "🎷 | Sax player", "🎵 | Melody maker", "🎶 | Harmony",
-    "💃 | Dancer", "🕺 | Dancing king", "🏃 | Runner",
-    "🚴 | Cyclist", "🏊 | Swimmer", "🏋️ | Gym rat",
-    "🧘 | Yogi", "🥋 | Martial arts", "⚽ | Football",
-    "🏀 | Basketball", "🎾 | Tennis", "🏐 | Volleyball",
-    "🏈 | Football", "⚾ | Baseball", "🥊 | Boxing",
-    "🎯 | Archery", "🏹 | Hunter", "🎣 | Fisherman",
-    "🏄 | Surfer", "⛷️ | Skier", "🏂 | Snowboarder",
-    "🚣 | Rower", "🧗 | Climber", "🏇 | Rider",
-    "🚀 | Space explorer", "🌌 | Galaxy traveler", "🛸 | Alien",
-    "🧙 | Wizard", "🧚 | Fairy", "🧛 | Vampire",
-    "🧟 | Zombie", "🤖 | Robot", "👽 | Alien",
-    "👾 | Gamer", "🎭 | Performer", "🎪 | Entertainer",
 ]
 
 MESSENGER_BIOS = [
@@ -88,83 +38,31 @@ MESSENGER_BIOS = [
     "💼 | Work mode", "🎯 | Focused", "🤝 | Open for chat",
     "📝 | Busy writing", "🎨 | Creative mode", "🏃 | On the go",
     "🍕 | Food lover", "☕ | Coffee time", "🎬 | Movie time",
-    "📺 | Series marathon", "🎮 | Gaming session", "📸 | Photo editing",
-    "🎵 | Music session", "📖 | Reading time", "✍️ | Writing mode",
-    "🧘 | Meditation", "🏋️ | Workout", "🚶 | Walking",
-    "🏃‍♂️ | Running", "🚴 | Cycling", "🏊 | Swimming",
-    "🎯 | Goal setting", "📈 | Business mode", "💡 | Ideas",
-    "🤔 | Thinking", "😊 | Happy", "😢 | Sad",
-    "😍 | In love", "😎 | Cool", "🤓 | Nerd",
-    "🥳 | Party", "🎉 | Celebration", "🎊 | Joy",
-    "🎈 | Fun", "🎁 | Surprise", "🎀 | Gift",
-    "🌸 | Flower", "🌹 | Rose", "🌺 | Hibiscus",
-    "🌻 | Sunflower", "🌼 | Daisy", "🌷 | Tulip",
-    "🍀 | Lucky", "🎋 | Wishes", "🎍 | Bamboo",
-    "🪴 | Plant", "🌵 | Cactus", "🌿 | Herb",
-    "🍃 | Leaf", "🍂 | Autumn", "🍁 | Maple",
-    "🌾 | Rice", "🌽 | Corn", "🍎 | Apple",
-    "🍐 | Pear", "🍊 | Orange", "🍋 | Lemon",
-    "🍌 | Banana", "🍉 | Watermelon", "🍇 | Grapes",
-    "🍓 | Strawberry", "🫐 | Blueberry", "🍒 | Cherry",
-    "🍑 | Peach", "🥭 | Mango", "🥝 | Kiwi",
-    "🥑 | Avocado", "🥥 | Coconut", "🥦 | Broccoli",
-    "🥬 | Lettuce", "🥒 | Cucumber", "🌶️ | Pepper",
-    "🧄 | Garlic", "🧅 | Onion", "🥔 | Potato",
-    "🍠 | Sweet potato", "🥕 | Carrot", "🌽 | Corn",
-    "🍞 | Bread", "🥖 | Baguette", "🥨 | Pretzel",
-    "🧀 | Cheese", "🍳 | Breakfast", "🥚 | Egg",
-    "🍗 | Chicken", "🥩 | Steak", "🍔 | Burger",
-    "🍟 | Fries", "🌭 | Hot dog", "🍕 | Pizza",
-    "🥪 | Sandwich", "🌮 | Taco", "🌯 | Burrito",
-    "🥙 | Falafel", "🥗 | Salad", "🍲 | Soup",
-    "🍛 | Curry", "🍜 | Noodles", "🍝 | Pasta",
-    "🥟 | Dumpling", "🍣 | Sushi", "🍱 | Bento",
-    "🥡 | Takeout", "🍦 | Ice cream", "🍨 | Sundae",
-    "🍧 | Shaved ice", "🎂 | Cake", "🍰 | Dessert",
-    "🍪 | Cookie", "🍩 | Donut", "🍫 | Chocolate",
 ]
 
 def register_bios_handlers(bot: TeleBot):
     
     @bot.callback_query_handler(func=lambda call: call.data == "bios")
     def bios_callback(call):
-        """عرض قائمة البايوهات"""
         markup = InlineKeyboardMarkup(row_width=2)
         btn1 = InlineKeyboardButton("💚 واتساب", callback_data="bio_whatsapp")
         btn2 = InlineKeyboardButton("📸 إنستجرام", callback_data="bio_instagram")
         btn3 = InlineKeyboardButton("💬 ماسنجر", callback_data="bio_messenger")
-        btn4 = InlineKeyboardButton("🔙 رجوع", callback_data="menu")
+        btn4 = InlineKeyboardButton("🔙 رجوع", callback_data="back_to_menu")
         markup.add(btn1, btn2, btn3)
         markup.add(btn4)
         
-        try:
-            bot.edit_message_text(
-                "📝 **اختر نوع البايو:**\n\n"
-                "• 💚 **واتساب** - بايوهات واتساب مميزة\n"
-                "• 📸 **إنستجرام** - بايوهات إنستجرام عصرية\n"
-                "• 💬 **ماسنجر** - بايوهات ماسنجر متنوعة\n\n"
-                f"✨ **يوجد {len(WHATSAPP_BIOS)} بايو لكل قسم**",
-                call.message.chat.id,
-                call.message.message_id,
-                parse_mode='Markdown',
-                reply_markup=markup
-            )
-        except:
-            bot.send_message(
-                call.message.chat.id,
-                "📝 **اختر نوع البايو:**\n\n"
-                "• 💚 **واتساب** - بايوهات واتساب مميزة\n"
-                "• 📸 **إنستجرام** - بايوهات إنستجرام عصرية\n"
-                "• 💬 **ماسنجر** - بايوهات ماسنجر متنوعة\n\n"
-                f"✨ **يوجد {len(WHATSAPP_BIOS)} بايو لكل قسم**",
-                parse_mode='Markdown',
-                reply_markup=markup
-            )
+        bot.edit_message_text(
+            "📝 **اختر نوع البايو:**\n\n• 💚 واتساب\n• 📸 إنستجرام\n• 💬 ماسنجر",
+            call.message.chat.id,
+            call.message.message_id,
+            parse_mode='Markdown',
+            reply_markup=markup
+        )
         bot.answer_callback_query(call.id)
     
     @bot.callback_query_handler(func=lambda call: call.data.startswith("bio_"))
     def show_bio(call):
-        """عرض بايو واحد عشوائي"""
         bio_type = call.data.split("_")[1]
         
         if bio_type == "whatsapp":
@@ -177,32 +75,22 @@ def register_bios_handlers(bot: TeleBot):
             bio = random.choice(MESSENGER_BIOS)
             title = "💬 **بايو ماسنجر:** 💬"
         
-        # حذف الرسالة السابقة
-        try:
-            bot.delete_message(call.message.chat.id, call.message.message_id)
-        except:
-            pass
+        bot.delete_message(call.message.chat.id, call.message.message_id)
         
-        # عرض البايو
         response = f"{title}\n\n`{bio}`\n\n✨ **لنسخ البايو اضغط على النص أعلاه**"
         
         markup = InlineKeyboardMarkup()
-        btn1 = InlineKeyboardButton("🔄 بايو جديد", callback_data=f"refresh_{bio_type}")
+        btn1 = InlineKeyboardButton("🔄 بايو جديد", callback_data=f"refresh_bio_{bio_type}")
         btn2 = InlineKeyboardButton("🔙 رجوع", callback_data="bios")
         markup.add(btn1, btn2)
         
-        bot.send_message(
-            call.message.chat.id,
-            response,
-            parse_mode='Markdown',
-            reply_markup=markup
-        )
+        bot.send_message(call.message.chat.id, response, parse_mode='Markdown', reply_markup=markup)
+        db.update_user_activity(call.from_user.id, "bios")
         bot.answer_callback_query(call.id, "✨ بايو جديد")
     
-    @bot.callback_query_handler(func=lambda call: call.data.startswith("refresh_"))
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("refresh_bio_"))
     def refresh_bio(call):
-        """تحديث البايو"""
-        bio_type = call.data.split("_")[1]
+        bio_type = call.data.split("_")[2]
         
         if bio_type == "whatsapp":
             bio = random.choice(WHATSAPP_BIOS)
@@ -214,23 +102,14 @@ def register_bios_handlers(bot: TeleBot):
             bio = random.choice(MESSENGER_BIOS)
             title = "💬 **بايو ماسنجر:** 💬"
         
-        # حذف الرسالة السابقة
-        try:
-            bot.delete_message(call.message.chat.id, call.message.message_id)
-        except:
-            pass
+        bot.delete_message(call.message.chat.id, call.message.message_id)
         
         response = f"{title}\n\n`{bio}`\n\n✨ **لنسخ البايو اضغط على النص أعلاه**"
         
         markup = InlineKeyboardMarkup()
-        btn1 = InlineKeyboardButton("🔄 بايو جديد", callback_data=f"refresh_{bio_type}")
+        btn1 = InlineKeyboardButton("🔄 بايو جديد", callback_data=f"refresh_bio_{bio_type}")
         btn2 = InlineKeyboardButton("🔙 رجوع", callback_data="bios")
         markup.add(btn1, btn2)
         
-        bot.send_message(
-            call.message.chat.id,
-            response,
-            parse_mode='Markdown',
-            reply_markup=markup
-        )
+        bot.send_message(call.message.chat.id, response, parse_mode='Markdown', reply_markup=markup)
         bot.answer_callback_query(call.id, "✨ بايو جديد")

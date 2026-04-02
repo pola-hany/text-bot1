@@ -1,19 +1,29 @@
 from telebot import TeleBot
 from keyboards.menus import main_menu
+from admin.admin_handler import is_admin
 
 def register_start_handlers(bot: TeleBot):
     
     @bot.message_handler(commands=['start', 'help'])
-    def start(message):
+    def start_command(message):
+        user_id = message.from_user.id
+        
+        welcome_text = """
+✨ **بوت الزخرفة والترجمة المتقدم** ✨
+
+📌 **اختر الخدمة من القائمة أدناه:**
+
+• ✨ **زخرفة نصوص** - زخرفة الأسماء بخطوط عربية وإنجليزية
+• 🌍 **ترجمة الأسماء** - ترجمة إلى الكوري، الصيني، والفرعوني
+• 📝 **بايوهات جاهزة** - بايوهات مميزة لواتساب، إنستجرام، ماسنجر
+• 🎨 **تأثيرات إضافية** - خطوط تحت، وسط، نص مقلوب
+
+✅ **جميع النصوص قابلة للنسخ بالضغط عليها مباشرة**
+        """
+        
         bot.send_message(
             message.chat.id,
-            "✨ **بوت الزخرفة والترجمة المتقدم** ✨\n\n"
-            "📌 **اختر الخدمة التي تريدها من القائمة:**\n\n"
-            "• ✨ **زخرفة نصوص** - زخرفة الأسماء بخطوط عربية وإنجليزية فاخرة\n"
-            "• 🌍 **ترجمة الأسماء** - ترجمة إلى الكوري، الصيني، والفرعوني\n"
-            "• 📝 **بايوهات جاهزة** - بايوهات مميزة لواتساب، إنستجرام، ماسنجر\n"
-            "• 🎨 **تأثيرات إضافية** - خطوط تحت، وسط، نص مقلوب، وغيرها\n\n"
-            "✅ **جميع النصوص قابلة للنسخ بالضغط عليها مباشرة**",
+            welcome_text,
             parse_mode='Markdown',
-            reply_markup=main_menu()
+            reply_markup=main_menu(user_id)
         )
