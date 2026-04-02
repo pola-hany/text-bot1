@@ -1,6 +1,5 @@
 from telebot import TeleBot
 from keyboards.menus import main_menu
-from admin.admin_handler import is_admin
 
 def register_start_handlers(bot: TeleBot):
     
