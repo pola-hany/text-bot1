@@ -3,9 +3,6 @@ import time
 import requests
 import telebot
 from telebot import apihelper
-from handlers import register_all_handlers
-from database.db_manager import Database
-from admin.admin_handler import is_admin, get_admin_ids
 
 # ============= إعدادات البوت =============
 
@@ -25,7 +22,11 @@ apihelper.ENABLE_MIDDLEWARE = False
 bot = telebot.TeleBot(TOKEN, parse_mode='HTML')
 
 # ============= قاعدة البيانات =============
+from database.db_manager import Database
 db = Database()
+
+# ============= الادمن =============
+from admin.admin_handler import is_admin, get_admin_ids
 
 # ============= دالة التحقق من الاشتراك =============
 def check_subscription(user_id):
@@ -72,7 +73,7 @@ def check_subscription_callback(call):
 # ============= معالج الوسيط =============
 @bot.message_handler(func=lambda message: True)
 def handle_all_messages(message):
-    allowed_commands = ['/start', '/help', '/admin', '/admin_info']
+    allowed_commands = ['/start', '/help', '/admin', '/admin_panel']
     
     if message.text and message.text.startswith('/'):
         if message.text in allowed_commands:
@@ -96,7 +97,8 @@ def handle_all_messages(message):
     
     bot.process_new_messages([message])
 
-# ============= تسجيل جميع المعالجات من الملفات الموجودة =============
+# ============= تسجيل المعالجات =============
+from handlers import register_all_handlers
 register_all_handlers(bot)
 
 # ============= تشغيل البوت =============
