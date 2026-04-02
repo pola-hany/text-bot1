@@ -8,30 +8,35 @@ from database.db_manager import Database
 
 # ============= إعدادات البوت =============
 
-# جلب التوكن من متغيرات البيئة
 TOKEN = os.environ.get('BOT_TOKEN')
 if not TOKEN:
     print("❌ خطأ: لم يتم تعيين BOT_TOKEN")
-    print("📌 يرجى إضافة BOT_TOKEN في متغيرات البيئة في Railway")
     exit(1)
 
 # ============= إزالة أي Webhook قديم =============
+print("🔄 جاري إزالة webhook القديم...")
 try:
-    response = requests.get(f'https://api.telegram.org/bot{TOKEN}/deleteWebhook')
+    response = requests.get(f'https://api.telegram.org/bot{TOKEN}/deleteWebhook', timeout=10)
     if response.status_code == 200:
-        print("✅ تم حذف webhook بنجاح")
+        result = response.json()
+        if result.get('ok'):
+            print("✅ تم حذف webhook بنجاح")
+        else:
+            print(f"⚠️ فشل حذف webhook: {result}")
+    else:
+        print(f"⚠️ خطأ في الاتصال: {response.status_code}")
 except Exception as e:
     print(f"⚠️ خطأ في حذف webhook: {e}")
 
-# ============= إنشاء البوت =============
-bot = telebot.TeleBot(TOKEN, parse_mode='HTML')
+# ============= إعدادات خاصة لمنع 409 =============
+# تعطيل الـ threading نهائياً
 apihelper.ENABLE_MIDDLEWARE = False
+
+# إنشاء البوت
+bot = telebot.TeleBot(TOKEN, parse_mode='HTML')
 
 # ============= قاعدة البيانات =============
 db = Database()
-
-# ============= تسجيل المعالجات =============
-register_all_handlers(bot)
 
 # ============= دالة التحقق من الاشتراك =============
 def check_subscription(user_id):
@@ -43,7 +48,6 @@ def check_subscription(user_id):
     
     for channel in required_channels:
         try:
-            # التحقق من عضوية المستخدم
             chat_member = bot.get_chat_member(channel['chat_id'], user_id)
             if chat_member.status in ['left', 'kicked']:
                 return False
@@ -71,6 +75,9 @@ def get_subscription_keyboard():
     
     return markup
 
+# ============= تسجيل المعالجات =============
+register_all_handlers(bot)
+
 # ============= معالج التحقق من الاشتراك =============
 @bot.callback_query_handler(func=lambda call: call.data == "check_subscription")
 def check_subscription_callback(call):
@@ -78,35 +85,31 @@ def check_subscription_callback(call):
     if check_subscription(call.from_user.id):
         bot.answer_callback_query(call.id, "✅ تم التحقق! مرحباً بك")
         bot.delete_message(call.message.chat.id, call.message.message_id)
+        from keyboards.menus import main_menu
         bot.send_message(
             call.message.chat.id,
             "✨ **مرحباً بك في البوت!** ✨\n\n"
-            "📌 يمكنك الآن استخدام جميع الخدمات.\n"
-            "📌 أرسل /start للبدء",
-            parse_mode='Markdown'
+            "📌 يمكنك الآن استخدام جميع الخدمات.",
+            parse_mode='Markdown',
+            reply_markup=main_menu()
         )
     else:
         bot.answer_callback_query(call.id, "❌ يرجى الاشتراك في جميع القنوات أولاً", show_alert=True)
 
 # ============= معالج الوسيط للتحقق من الاشتراك =============
-def subscription_middleware(message):
-    """وسيط للتحقق من الاشتراك قبل أي أمر"""
-    if message.text and message.text.startswith('/'):
-        # الأوامر المسموح بها بدون اشتراك
-        allowed_commands = ['/start', '/help', '/admin', '/admin_info']
-        if message.text in allowed_commands:
-            return True
-    
-    return check_subscription(message.from_user.id)
-
-# ============= تعديل معالج الرسائل للتحقق =============
-original_handlers = []
-
-@bot.message_handler(func=lambda message: True, content_types=['text'])
+@bot.message_handler(func=lambda message: True)
 def handle_all_messages(message):
     """معالج عام للرسائل مع التحقق من الاشتراك"""
+    # الأوامر المسموح بها بدون اشتراك
+    allowed_commands = ['/start', '/help', '/admin', '/admin_info']
+    
+    if message.text and message.text.startswith('/'):
+        if message.text in allowed_commands:
+            # تمرير للمعالجات الأخرى
+            bot.process_new_messages([message])
+            return
+    
     if not check_subscription(message.from_user.id):
-        # عرض رسالة الاشتراك الإجباري
         required_channels = db.get_required_channels()
         text = "🔒 **للوصول إلى البوت، يرجى الاشتراك في القنوات التالية:**\n\n"
         
@@ -132,16 +135,16 @@ print("=" * 60)
 print("🤖 بوت الزخرفة والترجمة المتقدم")
 print("=" * 60)
 print(f"📌 التوكن: {TOKEN[:10]}...{TOKEN[-5:]}")
-print(f"👑 قائمة الادمن: {os.environ.get('ADMIN_IDS', 'غير محددة')}")
+print(f"👑 الادمن: {os.environ.get('ADMIN_IDS', 'غير محدد')}")
 print("=" * 60)
 
 try:
     bot_info = bot.get_me()
     print(f"✅ البوت يعمل بنجاح!")
-    print(f"🤖 اسم البوت: @{bot_info.username}")
-    print(f"🆔 معرف البوت: {bot_info.id}")
+    print(f"🤖 @{bot_info.username}")
+    print(f"🆔 ID: {bot_info.id}")
 except Exception as e:
-    print(f"⚠️ خطأ في الاتصال بالبوت: {e}")
+    print(f"⚠️ خطأ: {e}")
 
 print("=" * 60)
 print("📊 المميزات:")
@@ -150,37 +153,40 @@ print("   🆎 11+ خط إنجليزي")
 print("   🇰🇷 8+ ترجمة كورية")
 print("   🇨🇳 8+ ترجمة صينية")
 print("   𓂀 8+ ترجمة فرعونية")
-print("   📝 200+ بايو لكل قسم")
-print("   🎨 تأثيرات إضافية")
-print("   👑 لوحة تحكم الادمن")
-print("   🔒 نظام اشتراك إجباري")
+print("   📝 200+ بايو")
+print("   🎨 تأثيرات")
+print("   👑 لوحة ادمن")
+print("   🔒 اشتراك إجباري")
 print("=" * 60)
-print("🚀 بدء تشغيل البوت...")
+print("🚀 بدء التشغيل...")
 print("=" * 60)
 
 # ============= تشغيل البوت =============
 if __name__ == "__main__":
     while True:
         try:
+            # استخدام polling بدون threading
             bot.polling(
                 none_stop=True,
-                interval=0,
+                interval=1,
                 timeout=30,
                 long_polling_timeout=30,
                 allowed_updates=None,
-                skip_pending=False
+                skip_pending=True
             )
         except Exception as e:
             error_msg = str(e)
-            print(f"⚠️ خطأ في polling: {error_msg}")
+            print(f"⚠️ خطأ: {error_msg}")
             
             if "409" in error_msg or "Conflict" in error_msg:
-                print("🔄 تم اكتشاف تعارض، جاري إعادة ضبط webhook...")
+                print("🔄 جاري إعادة ضبط webhook...")
                 try:
-                    requests.get(f'https://api.telegram.org/bot{TOKEN}/deleteWebhook')
+                    requests.get(f'https://api.telegram.org/bot{TOKEN}/deleteWebhook', timeout=5)
                     print("✅ تم إعادة ضبط webhook")
                 except:
                     pass
-            
-            print("🔄 إعادة المحاولة بعد 5 ثواني...")
-            time.sleep(5)
+                
+                # انتظار أطول قبل إعادة المحاولة
+                time.sleep(10)
+            else:
+                time.sleep(5)
